@@ -1,128 +1,68 @@
-// Pins de control para los motores y configuración inicial
-int motor2Pin1 = 7;
-int motor2Pin2 = 8;
-int motor2SpeedPin = 6;
+// Pines de control para el puente H L293B
+int motor1EnablePin = 9; // Pin de habilitación del motor 1
+int motor1Input1 = 8;    // Conexión de entrada 1 del motor 1
+int motor1Input2 = 7;    // Conexión de entrada 2 del motor 1
 
-int motor3Pin1 = 12;
-int motor3Pin2 = 13;
-int motor3SpeedPin = 11;
+int motor2EnablePin = 10; // Pin de habilitación del motor 2
+int motor2Input1 = 12;    // Conexión de entrada 1 del motor 2
+int motor2Input2 = 13;    // Conexión de entrada 2 del motor 2
 
-unsigned long tiempoInicio = 0;
-unsigned long tiempoDuracion = 1000; // Duración en milisegundos
+int velocidad = 255;  // Velocidad máxima (0 a 255)
 
 void setup() {
   // Configura los pines de control como salidas
-  pinMode(motor2Pin1, OUTPUT);
-  pinMode(motor2Pin2, OUTPUT);
-  pinMode(motor2SpeedPin, OUTPUT);
-
-  pinMode(motor3Pin1, OUTPUT);
-  pinMode(motor3Pin2, OUTPUT);
-  pinMode(motor3SpeedPin, OUTPUT);
+  pinMode(motor1EnablePin, OUTPUT);
+  pinMode(motor1Input1, OUTPUT);
+  pinMode(motor1Input2, OUTPUT);
+  pinMode(motor2EnablePin, OUTPUT);
+  pinMode(motor2Input1, OUTPUT);
+  pinMode(motor2Input2, OUTPUT);
 
   // Inicializa el Monitor Serial
   Serial.begin(9600);
 }
 
-// Función para avanzar durante un tiempo específico
-void avanzar() {
-  tiempoInicio = millis();
-  while (millis() - tiempoInicio < tiempoDuracion) {
-    digitalWrite(motor2Pin1, HIGH);
-    digitalWrite(motor2Pin2, LOW);
-    analogWrite(motor2SpeedPin, 255);
-
-    digitalWrite(motor3Pin1, HIGH);
-    digitalWrite(motor3Pin2, LOW);
-    analogWrite(motor3SpeedPin, 255);
-
-  }
-
-  detenerMotores();
-  return;
-}
-
-void retroceder() {
-  tiempoInicio = millis();
-  while (millis() - tiempoInicio < tiempoDuracion) {
-    digitalWrite(motor2Pin1, LOW);
-    digitalWrite(motor2Pin2, HIGH);
-    analogWrite(motor2SpeedPin, 50);
-
-    digitalWrite(motor3Pin1, LOW);
-    digitalWrite(motor3Pin2, HIGH);
-    analogWrite(motor3SpeedPin, 255);
-  }
-
-  detenerMotores();
-  return;
-}
-void derecha() {
-  tiempoInicio = millis();
-  while (millis() - tiempoInicio < tiempoDuracion) {
-    digitalWrite(motor2Pin1, LOW);
-    digitalWrite(motor2Pin2, LOW);
-    analogWrite(motor2SpeedPin, 50);
-
-    digitalWrite(motor3Pin1, HIGH);
-    digitalWrite(motor3Pin2, LOW);
-    analogWrite(motor3SpeedPin, 255);
-  }
-
-  detenerMotores();
-  return;
-}
-void izquierda() {
-  tiempoInicio = millis();
-  while (millis() - tiempoInicio < tiempoDuracion) {
-    digitalWrite(motor2Pin1, LOW);
-    digitalWrite(motor2Pin2, HIGH);
-    analogWrite(motor2SpeedPin, 255);
-
-    digitalWrite(motor3Pin1, LOW);
-    digitalWrite(motor3Pin2, LOW);
-    analogWrite(motor3SpeedPin, 50);
-  }
-
-  detenerMotores();
-  return;
-}
-// Función para detener los motores
-void detenerMotores() {
-  digitalWrite(motor2Pin1, LOW);
-  digitalWrite(motor2Pin2, LOW);
-  analogWrite(motor2SpeedPin, 0);
-
-  digitalWrite(motor3Pin1, LOW);
-  digitalWrite(motor3Pin2, LOW);
-  analogWrite(motor3SpeedPin, 0);
-
-  return;
-}
-
 void loop() {
   if (Serial.available() > 0) {
     char command = Serial.read();
-    switch (command) {
-      case 'F':
-        Serial.println("FRENTE");
-        avanzar();
-        break;
-      case 'B':
-        Serial.println("REVERSA");
-        retroceder();
-        break;
-      case 'L':
-        Serial.println("DERECHA");
-        derecha();
-        break;
-      case 'R':
-        Serial.println("IZQUIERDA");
-        izquierda();
-        break;
-      default:
-        // Cualquier otro comando no reconocido
-        break;
+
+    // Control de dirección y velocidad de los motores
+    if (command == 'F') {
+      // Avanzar
+      digitalWrite(motor1Input1, HIGH);
+      digitalWrite(motor1Input2, LOW);
+      digitalWrite(motor2Input1, HIGH);
+      digitalWrite(motor2Input2, LOW);
+      analogWrite(motor1EnablePin, velocidad);
+      analogWrite(motor2EnablePin, velocidad);
+    } else if (command == 'B') {
+      // Retroceder
+      digitalWrite(motor1Input1, LOW);
+      digitalWrite(motor1Input2, HIGH);
+      digitalWrite(motor2Input1, LOW);
+      digitalWrite(motor2Input2, HIGH);
+      analogWrite(motor1EnablePin, velocidad);
+      analogWrite(motor2EnablePin, velocidad);
+    } else if (command == 'L') {
+      // Giro a la izquierda
+      digitalWrite(motor1Input1, LOW);
+      digitalWrite(motor1Input2, HIGH);
+      digitalWrite(motor2Input1, HIGH);
+      digitalWrite(motor2Input2, LOW);
+      analogWrite(motor1EnablePin, velocidad);
+      analogWrite(motor2EnablePin, velocidad);
+    } else if (command == 'R') {
+      // Giro a la derecha
+      digitalWrite(motor1Input1, HIGH);
+      digitalWrite(motor1Input2, LOW);
+      digitalWrite(motor2Input1, LOW);
+      digitalWrite(motor2Input2, HIGH);
+      analogWrite(motor1EnablePin, velocidad);
+      analogWrite(motor2EnablePin, velocidad);
+    } else {
+      // Detener motores
+      analogWrite(motor1EnablePin, 0);
+      analogWrite(motor2EnablePin, 0);
     }
   }
 }
